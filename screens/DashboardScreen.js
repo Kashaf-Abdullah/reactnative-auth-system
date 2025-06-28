@@ -15,6 +15,7 @@ export default function DashboardScreen({ navigation }) {
   const [lineData, setLineData] = useState(null);
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const handleLogout = async () => {
   await logout();
   navigation.navigate('Home'); // or 'Login', depending on your app
@@ -29,6 +30,8 @@ export default function DashboardScreen({ navigation }) {
 
   useEffect(() => {
   const fetchData = async () => {
+     if (!token) return; // ✅ prevent malformed if token is null
+
     try {
       const [catRes, barRes, trendRes, budgetRes] = await Promise.all([
         getCategoryAnalytics(token),
