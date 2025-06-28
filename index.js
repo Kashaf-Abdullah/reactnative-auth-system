@@ -1,6 +1,7 @@
 /**
  * @format
  */
+import 'react-native-gesture-handler'; // 👈 must be at the top
 
 import { AppRegistry } from 'react-native';
 import App from './App';

@@ -1,80 +1,52 @@
+
+
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../utils/useAuth'; // ✅
 
 export default function LoginScreen({ navigation }) {
-
-const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-//   const handleLogin = () => {
-//     console.log('Login Data:', { email, password });
-//   };
-
-const handleLogin = async () => {
-  try {
-    const response = await fetch('http://192.168.10.8:5000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      console.log(data.user);
-      alert('Login Successful');
-       // Navigate to Dashboard with user data
-      navigation.navigate('Dashboard', {
-        name: data.user.name,
-        email: data.user.email
+const { login } = useAuth();
+  const handleLogin = async () => {
+    try {
+      const res = await fetch('http://192.168.10.8:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
-    } else {
-      alert(data.message);
-    }
-  } catch (error) {
-    console.error('Login Error:', error);
-  }
-};
 
+      const data = await res.json();
+
+      if (res.ok) {
+        await AsyncStorage.setItem('token', data.token); // ✅ use 'token'
+login(data.token); // ✅ from useAuth
+
+        navigation.navigate('dashboard');
+      } else {
+        Alert.alert('Login Failed', data.message || 'Invalid credentials');
+      }
+    } catch (err) {
+      console.error('Login Error:', err);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login Screen</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+      <Text style={styles.heading}>Login</Text>
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+      <TextInput placeholder="Password" value={password} onChangeText={setPassword} style={styles.input} secureTextEntry />
       <Button title="Login" onPress={handleLogin} />
+      <Text style={styles.link} onPress={() => navigation.navigate('Signup')}>Don't have an account? Sign up</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center'
-  },
-  title: {
-    fontSize: 28,
-    marginBottom: 20,
-    textAlign: 'center'
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#999',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 15
-  }
+  container: { padding: 20, marginTop: 80 },
+  heading: { fontSize: 24, marginBottom: 20 },
+  input: { borderWidth: 1, padding: 10, marginBottom: 10 },
+  link: { marginTop: 20, color: 'blue' }
 });
